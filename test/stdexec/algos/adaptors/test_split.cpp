@@ -322,8 +322,8 @@ TEST_CASE("split doesn't advertise completion scheduler", "[adaptors][split]") {
 
   auto snd = ex::transfer_just(sched, 42) | ex::split();
   using snd_t = decltype(snd);
-  static_assert(!stdexec::__has_completion_scheduler<snd_t, ex::set_value_t>);
-  static_assert(!stdexec::__has_completion_scheduler<snd_t, ex::set_error_t>);
-  static_assert(!stdexec::__has_completion_scheduler<snd_t, ex::set_stopped_t>);
+  static_assert(!stdexec::__callable<stdexec::get_completion_scheduler_t<ex::set_value_t>, snd_t>);
+  static_assert(!stdexec::__callable<stdexec::get_completion_scheduler_t<ex::set_error_t>, snd_t>);
+  static_assert(!stdexec::__callable<stdexec::get_completion_scheduler_t<ex::set_stopped_t>, snd_t>);
   (void)snd;
 }

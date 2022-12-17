@@ -125,7 +125,7 @@ namespace nvexec::STDEXEC_STREAM_DETAIL_NS {
 
       template <stdexec::__single_value_variant_sender<__env> Sender>
         requires
-          (!stdexec::__tag_invocable_with_completion_scheduler<
+          (!stdexec::__tag_invocable_with_domain<
             sync_wait_t, stdexec::set_value_t, Sender>) &&
           (!stdexec::tag_invocable<sync_wait_t, Sender>) &&
           stdexec::sender<Sender, __env> &&

@@ -37,6 +37,8 @@ struct cpo_t {
 
 template <class CPO>
 struct free_standing_sender_t {
+  using __id = free_standing_sender_t;
+  using __t = free_standing_sender_t;
   using completion_signatures = ex::completion_signatures< //
       ex::set_value_t(),                                   //
       ex::set_error_t(std::exception_ptr),                 //
@@ -47,13 +49,15 @@ struct free_standing_sender_t {
     return cpo_t<scope_t::free_standing>{};
   }
 
-  friend empty_attrs tag_invoke(ex::get_attrs_t, const free_standing_sender_t&) noexcept {
-    return {};
+  friend decltype(auto) tag_invoke(ex::get_attrs_t, const free_standing_sender_t& self) noexcept {
+    return self;
   }
 };
 
 template <class CPO, class... CompletionSignals>
 struct scheduler_t {
+  using __id = scheduler_t;
+  using __t = scheduler_t;
   struct attrs_t {
     template <stdexec::__one_of<ex::set_value_t, CompletionSignals...> Tag>
     friend scheduler_t tag_invoke(ex::get_completion_scheduler_t<Tag>, const attrs_t&) noexcept {
@@ -61,6 +65,8 @@ struct scheduler_t {
     }
   };
   struct sender_t {
+    using __id = sender_t;
+    using __t = sender_t;
     using completion_signatures = ex::completion_signatures< //
         ex::set_value_t(),                                   //
         ex::set_error_t(std::exception_ptr),                 //
@@ -81,4 +87,3 @@ struct scheduler_t {
   friend bool operator==(scheduler_t, scheduler_t) noexcept { return true; }
   friend bool operator!=(scheduler_t, scheduler_t) noexcept { return false; }
 };
-
