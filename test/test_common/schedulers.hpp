@@ -157,6 +157,10 @@ struct inline_scheduler {
 //! Scheduler that returns a sender that always completes with error.
 template <typename E = std::exception_ptr>
 struct error_scheduler {
+  error_scheduler() = default;
+  explicit error_scheduler(E err) : err_((E&&) err) {}
+  error_scheduler(const error_scheduler&) noexcept = default;
+private:
   template <typename R>
   struct oper : immovable {
     R recv_;
