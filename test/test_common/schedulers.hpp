@@ -126,7 +126,11 @@ struct impulse_scheduler {
 };
 
 //! Scheduler that executes everything inline, i.e., on the same thread
-struct inline_scheduler {
+template <class Domain = void>
+struct basic_inline_scheduler {
+  using __t = basic_inline_scheduler;
+  using __id = basic_inline_scheduler;
+
   template <typename R>
   struct oper : immovable {
     R recv_;
@@ -136,29 +140,43 @@ struct inline_scheduler {
   };
 
   struct my_sender {
+    using __t = my_sender;
+    using __id = my_sender;
     using completion_signatures = ex::completion_signatures<ex::set_value_t()>;
 
     template <typename R>
-    friend oper<R> tag_invoke(ex::connect_t, my_sender self, R&& r) {
+    friend oper<R> tag_invoke(ex::connect_t, my_sender self, R r) {
       return {{}, (R &&) r};
     }
 
-    friend scheduler_attrs<inline_scheduler> tag_invoke(ex::get_attrs_t, const my_sender&) noexcept {
+    friend scheduler_attrs<basic_inline_scheduler> tag_invoke(ex::get_attrs_t, const my_sender&) noexcept {
       return {};
     }
   };
 
-  friend my_sender tag_invoke(ex::schedule_t, inline_scheduler) { return {}; }
-
-  friend bool operator==(inline_scheduler, inline_scheduler) noexcept { return true; }
-  friend bool operator!=(inline_scheduler, inline_scheduler) noexcept { return false; }
+  friend my_sender tag_invoke(ex::schedule_t, const basic_inline_scheduler&) {
+    return {};
+  }
+  friend bool operator==(const basic_inline_scheduler&, const basic_inline_scheduler&) noexcept {
+    return true;
+  }
+  friend bool operator!=(const basic_inline_scheduler&, const basic_inline_scheduler&) noexcept {
+    return false;
+  }
+  friend Domain tag_invoke(ex::get_domain_t, const basic_inline_scheduler&) noexcept
+      requires ex::__class<Domain> {
+    return Domain();
+  }
 };
+
+using inline_scheduler = basic_inline_scheduler<>;
 
 //! Scheduler that returns a sender that always completes with error.
 template <typename E = std::exception_ptr>
 struct error_scheduler {
   error_scheduler() = default;
   explicit error_scheduler(E err) : err_((E&&) err) {}
+  error_scheduler(error_scheduler&&) noexcept = default;
   error_scheduler(const error_scheduler&) noexcept = default;
 private:
   template <typename R>
@@ -189,21 +207,11 @@ private:
     }
   };
 
-  error_scheduler() = default;
-  error_scheduler(E err)
-    : err_((E&&) err)
-  {}
-  error_scheduler(error_scheduler&& that) noexcept = default;
-  error_scheduler(const error_scheduler& that) noexcept
-    : err_(that.err_)
-  {}
-
   friend my_sender tag_invoke(ex::schedule_t, const error_scheduler& self) { return {(E &&) self.err_}; }
 
   friend bool operator==(const error_scheduler&, const error_scheduler&) noexcept { return true; }
   friend bool operator!=(const error_scheduler&, const error_scheduler&) noexcept { return false; }
 
-private:
   E err_{};
 };
 

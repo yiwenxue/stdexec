@@ -172,6 +172,13 @@ namespace stdexec {
       move_constructible<decay_t<_T>> &&
       constructible_from<decay_t<_T>, _T>;
 
+  template <class _T>
+    concept __nothrow_movable_value =
+      __movable_value<_T> &&
+      requires (_T&& __t) {
+        { decay_t<_T>{decay_t<_T>{(_T&&) __t}} } noexcept;
+      };
+
   template <class _Trait>
     concept __is_true = _Trait::value;
 
